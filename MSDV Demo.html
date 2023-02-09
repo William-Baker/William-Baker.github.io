@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+
+
+<style>
+#container svg, #container canvas {
+    position: absolute;
+    top: 0;
+    left:0;
+    width: 100%;
+}
+svg {
+    background-color: #1b1b1b;
+}
+svg text {
+    font-family: proxima-nova;
+    font-size: 18px;
+    fill: #dddddd;
+}
+.countries {
+    fill: #333333;
+}
+.x_axis text{
+    fill: #dddddd;
+}
+.x_axis line{
+    stroke: #dddddd;
+}
+.x_axis path{
+  stroke: #dddddd;
+}
+.y_axis text{
+    fill: #dddddd;
+}
+.y_axis line{
+    stroke: #dddddd;
+}
+.y_axis path{
+  stroke: #dddddd;
+}
+</style>
+
+
+<div id='container'></div>
+<div id='circles_layer' style="position:absolute; top:0; left:0;width: 100%;"></div>
+<div id="line_graph" style="position:absolute; top:70%; left:0;width: 100%;height: 30%"></div>
+
+
+<div style="position:absolute; top:105%;width: 50%;left:25%"> 
+<h1> MSDV CW2 Description </h1>    
+
+<p>
+    The visualsation uses the CSSE COVID-19 dataset, which consists of 420MB of cases, split across hundreds of files summarizing the data for a given day.
+    <br>
+    Within each file are a number of locations, each with a frequency of cases, hosptialisations, deaths and active cases. However to add further complextity
+    each region uses a running total so cannot be viewed as a discrete time step. Accordingly I heavily preprocess this data in csse_merge.py.
+    <br>
+    I have exported the interactive python session into csse_merge.ipynb for easier viewing from vs code (If you wish to run the code, download the dataset from https://github.com/CSSEGISandData/COVID-19 and change the path). 
+    In summary, I first read the many CSV files and merged them into a single pandas dataframe. Then I combined duplicate columns as column names changed during the CSSE dataset. Next I round all latitudes and longitudes to integers,
+    given the scale of the heatmap, this has very little impact on the visualisation, but greatly improves performance and means the heatmap is using a constant density, without this the heatmap would be invalid.
+    Next I de-accumualte the data, which converts each time step into a discrete step, rather than an accumulation of all prior steps. Then I finally export the data into a JSON for my main web app.
+    <br>
+    <br>
+    Moving onto the visualisation itself, there are 3 main components the heatmap, circle tools and the multi-line graph
+    <br>
+    <h2>HeatMap</h2>
+    The heatmap is intended to show how the impact of COVID-19 varies globally.
+    The heatmap consists uses a Winkel-Triple-Pojection to minimise distortion (https://cdn.jsdelivr.net/npm/d3-geo-projection@4).
+    Each country is projected as an SVG region in grey to be visble but not draw attention.
+    The hot-spots are then drawn on top of this map, each hot spot is formed using an circle with an expential gradient from the hotspot color to 100% transparency. This is done using code from https://github.com/mourner/simpleheat.
+    <br/>
+    <h2>Circle Tools</h2>
+    The circle tools were developed from scratch using Konva, this took a while to develop as we had not covered it in the practicals.
+    In the end I'm really happy with the results as the tools can be moved, resized added and deleted.
+    The pixel locations used in the heatmap are used to select the corresponding data the circle is hovering over, enusuring the selection respects the distortions of the projection.
+    <h2>Multi-Line Graph</h2>
+    The multi-line graph is a refreshable graph using D3, intended to show how the impact of COVID-19 varies of time.
+    The color of each trend matches the color of the circle tool used to produce it.
+    The colors were chosen to be sufficiently different and limited to 5 channels as most people can only recongise 5 colors.
+    As the user moves the circle tools the graph automatically updates, using smooth animations to prevent too much stimulation. 
+    <br>
+    <br>
+    <h2>Omissions</h2>
+    I originally set out to include more features in my visualisation, but due to the unexpected time it took to pre-process the dataset, this was not possible.
+    The first feature was a key that could be used to switch between showing deaths, hospitalisations, and total cases, currently the visualisationis limited to the number of cases.
+    Secondly I hoped to add a time scale to greater zoom into the data and allow an animation of the heatmap over time as COVID-19 spread.
+    Thridly, I had hoped to allow dynamic resizing of the window, rather than needing to refresh the page when the window size changes. 
+    Finally I had hoped to use the Oxford Covid-19 Government Response Tracker (OxCGRT) dataset to visualise Government intervention using marks on the multi-line graph.
+
+</p>
+
+
+</div>
+
+
+
+
+<!-- For the Heatmap -->
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="assets/simpleheat.js"></script>  <!-- from https://github.com/mourner/simpleheat -->
+<script src="https://d3js.org/topojson.v1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4"></script> <!-- winkel triple  from https://github.com/d3/d3-geo-projection/ -->
+
+<!-- For the circles -->
+<script src="https://unpkg.com/konva@^2/konva.min.js"></script>
+
+<script>
+
+//=============================== Heatmap Setup ==============================================
+const width = window.innerWidth;
+const height = window.innerHeight * 0.7;
+
+div = d3.select('#container');
+mapLayer = div.append('svg').attr('id', 'map').attr('width', width).attr('height', height).attr("preserveAspectRatio", "xMinYMin meet");
+canvasLayer = div.append('canvas').attr('id', 'heatmap').attr('width', width).attr('height', height);
+
+const canvas = canvasLayer.node();
+const context = canvas.getContext("2d");
+
+// Define the Winkel Triple projection, adjusting the scale to best fit the screen
+let projection = d3.geoWinkel3().scale(width/6).translate([width/2, height/2]);
+let covid_data = [];
+//----------------------------------------------------------------------------------------------
+
+
+
+//=============================== Circle Setup ==============================================
+// A form of canvas used by konva
+const stage = new Konva.Stage({
+  container: 'circles_layer',
+  width: width,
+  height: height
+});
+
+const layer = new Konva.Layer();
+stage.add(layer);
+
+// When we click on the map, add a new Konva circle
+stage.on('mousedown', (e) => {
+  if(e.target === e.target.getStage()){
+    const pointer = stage.getPointerPosition();
+    add_circle(stage,pointer.x,pointer.y, update);
+  }
+})
+
+// The colors we will use for the circles, each using hues outside red-yellow as they were used in the heatmap
+//   Also dictates our limit of color identify, to be 5, since that's the average humans can identify
+const circle_color_pallette = ['#76ff64a0', '#64fff7a0', '#3363ffa0', '#9f4affa0', '#ff2ae3a0'];
+let used_colors = [];
+let circle_positions = {};
+
+//----------------------------------------------------------------------------------------------
+
+
+
+
+
+
+async function draw_heatmap(){
+    // fetches the data for the heatmap and draws it
+    const world = await d3.json("assets/world-50m.json"); // This is the SVG for the countries of the world
+    
+    const path = d3.geoPath(projection); // geographic path generator
+   
+    covid_data = await d3.json("assets/global_covid_weekly.json"); // A preprocessed version of the CSSE covid 19 dataset
+
+    // Add the pixel coordinates for each case and interpret dates
+    for(let index in covid_data){
+        let location = covid_data[index];
+        covid_data[index].coords = projection([location.lng, location.lat]);
+
+        new_dates = [];
+        for(let date_index in location.data['Last Update']){
+            new_dates.push(new Date(location.data['Last Update'][date_index]));
+        }
+        covid_data[index].data.dates = new_dates;
+    }
+
+    // Helper function to get all the data in a given date range
+    //     This is intended to be used in combination with the date slider, but I due to other challenges I had to omit this feature
+    function freq_in_range(location_entity, start_date, end_date){
+        accumulator = 0;
+        for(let index in location_entity.data.dates){
+            date = location_entity.data.dates[index];
+            if (start_date <= date <= end_date){
+                accumulator += location_entity.data.Active[index];
+            }
+        }
+        return [location_entity.coords[0], location_entity.coords[1], accumulator];
+    }
+
+    // Instead just use a large fixed date range from 2019 to 2022
+    freqs = [];
+    for(let index in covid_data){
+        freqs.push(freq_in_range(covid_data[index], new Date(2019, 0, 1), new Date(2022, 0, 1)));
+    }
+
+    // -------------------------------- External Code ------------------------------------------//
+    // The remainder of this method makes use of code from https://github.com/mourner/simpleheat
+
+    // Draw Countries
+    const countries = topojson.feature(world, world.objects.countries).features;
+    country_d3 = mapLayer
+        .append('g')
+        .classed('countries', true)
+        .selectAll(".country")
+          .data(countries)
+        .enter()
+          .append("path")
+          .attr("class", "country")
+          .attr("d", path);
+
+
+
+    let heat = simpleheat(canvas);
+
+    // set data of [[x, y, value], ...] format
+    heat.data(freqs);
+
+    // set point radius and blur radius (25 and 15 by default)
+    heat.radius(20,20);
+
+    heat.gradient({0:'#a0bd27', 0.8: '#df3531', 1: '#ff3531'}); // defines the color gradient in the heatmap
+
+    heat.max(d3.max(freqs, x => +x[2])); // set maximum for domain
+
+    heat.draw(0.08); // minimum alpha value
+}
+
+
+async function add_circle(stage, event_x, event_y, callback){
+    // When a click event is recived, adds a Konva circle
+    // This method was developed solely myself and took a long time as Konva had not been covered in the material
+    // Konva Callbacks allow for circles to be moved, resized and deleted
+    // On each event the callback is called to update the graph data
+
+    let available_colors =  circle_color_pallette.filter(function(x) { return used_colors.indexOf(x) < 0 })
+    if(available_colors.length == 0){
+        return; // we've reached our maximum number of circles so don't add another
+    }
+    let this_color = available_colors[0]; // we'll use the first available colors
+    used_colors.push(this_color);
+
+    
+    // group the elements for convenience
+    let group = new Konva.Group({});
+
+    // The center shaded color
+    const circle = new Konva.Circle({
+        x: event_x,
+        y: event_y,
+        radius: 50,
+        fill: this_color
+    });
+    group.add(circle);
+
+    // The outer circle to enable resizing
+    const border = new Konva.Circle({
+        x: circle.getX(),
+        y: circle.getY(),
+        radius: 53,
+        stroke: '#dddddda0',
+        strokeWidth: 6,
+        fillEnabled: false
+    });
+
+    group.add(border);
+
+    // Use a text X to delete the circle
+    let text = new Konva.Text({
+        text: 'X',
+        fontSize: 20,
+        x: circle.getX() + circle.getRadius(),
+        y: circle.getY() - circle.getRadius(),
+        fill: '#dddddda0'
+    });
+
+    group.add(text);
+
+    layer.add(group);
+
+    circle_positions[this_color] = {'x':circle.getX(), 'y':circle.getY(), 'r':circle.getRadius()}
+
+    function distance(p1, p2) {
+        return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+    }
+
+    // highlight the border when we hover over it
+    border.on('mouseenter', () => {
+        border.stroke('red');
+        layer.batchDraw();
+    })
+
+    border.on('mouseleave', () => {
+        border.stroke('#dddddda0');
+        layer.batchDraw();
+    })
+
+    // resizing the circle when we drag the radius
+    border.on('mousedown', () => {
+        // attach move event
+        stage.on('mousemove.resizer', () => {
+            const center = border.position();
+            const pointer = stage.getPointerPosition();
+            const radius = distance(center, pointer);
+            
+            border.radius(radius+3);
+            circle.radius(radius);
+            text.x(circle.getX() + circle.getRadius());
+            text.y(circle.getY() - circle.getRadius());
+
+            circle_positions[this_color] = {'x':circle.getX(), 'y':circle.getY(), 'r':circle.getRadius()};
+            
+            
+            layer.batchDraw();
+        });
+
+
+        // remove all events at end
+        stage.on('mouseup.resizer', () => {
+            stage.off('.resizer')
+            callback();
+        });
+
+    })
+
+    // Define the appropriate cursors for each operation
+    border.on('mouseover', function () {
+        document.body.style.cursor = 'nwse-resize';
+    });
+    border.on('mouseout', function () {
+        document.body.style.cursor = 'default';
+    });
+
+    circle.on('mouseover', function () {
+        document.body.style.cursor = 'move';
+    });
+        circle.on('mouseout', function () {
+        document.body.style.cursor = 'default';
+    });
+
+    // Moving/translating the circle when we drag the inner
+    circle.on('mousedown', () => {
+        // attach move event
+        stage.on('mousemove.resizer', () => {
+            const pointer = stage.getPointerPosition();
+            
+            border.x(pointer.x);
+            border.y(pointer.y);
+            circle.x(pointer.x);
+            circle.y(pointer.y);
+            text.x(circle.getX() + circle.getRadius());
+            text.y(circle.getY() - circle.getRadius());
+
+            circle_positions[this_color] = {'x':circle.getX(), 'y':circle.getY(), 'r':circle.getRadius()};
+            
+            
+            layer.batchDraw();
+        });
+
+
+        // remove all events at end
+        stage.on('mouseup.resizer', () => {
+            stage.off('.resizer');
+            callback();
+        });
+
+    })
+
+    // deleting the circle
+    text.on('mousedown', () => {
+        group.destroy();
+        layer.batchDraw();
+        used_colors = used_colors.filter(x => x !== this_color);
+        delete circle_positions[this_color];
+        callback();
+    });
+
+    layer.batchDraw();
+    callback();
+}
+
+function locations_in_projection_radius(x,y,radius){
+    // Use the pixel co-ords to see if a location is in the radius
+    // Due to the distortion of the projection, we can't use lat/lng
+
+    function dist(xa, ya, xb, yb){
+        // Euclidean distance with protection against division by 0
+        return Math.sqrt(Math.max( Math.pow(Math.abs(xa-xb), 2) + Math.pow(Math.abs(ya-yb), 2), 0.01));
+    }
+    indices = [];
+    for(let index in covid_data){
+        // If the projection coords are within the radius of the circle, save the location
+        if(dist(x, y, covid_data[index].coords[0], covid_data[index].coords[1]) < radius){
+            indices.push(index);
+        }
+    }
+
+
+    return indices;
+}
+
+function time_series_for_indices(indices, start_date, end_date, attribute='Active'){
+    // combines the multiple locations of data referenced by indices
+    // and groups them into consistent date ranges (dates don't align so this is needed for an even scale)
+
+    let dates = [];
+    let freqs = [];
+    for(index in indices){
+        dates = dates.concat(covid_data[index].data.dates);
+        freqs = freqs.concat(covid_data[index].data[attribute]);
+    }
+    
+    
+
+    // https://stackoverflow.com/questions/20630676/how-to-group-objects-with-timestamps-properties-by-day-week-month
+    function groupday(value, index, array){ return (Math.floor(value.getTime()/(1000*60*60*24)) ) ||[]; }
+
+    function groupweek(value, index, array){ return (Math.floor(value.getTime()/(1000*60*60*24*7))) ||[]; }
+
+    function groupmonth(value, index, array){ return ((value.getFullYear()-1970)*12 + value.getMonth()) || []; }
+    
+    let month_ids = dates.map(groupday); //groupmonth
+    
+    // zip the lists
+    let date_freq_id = dates.map(function(date, i) {
+        return [date, freqs[i], month_ids[i]];
+    });
+
+
+    // https://stackoverflow.com/questions/14446511/most-efficient-method-to-groupby-on-an-array-of-objects
+    let groupBy = function(xs, key) {
+        return xs.reduce(function(rv, x) {
+            (rv[x[key]] = rv[x[key]] || []).push(x);
+            return rv;
+        }, {});
+    };
+    let grouped = groupBy(date_freq_id, 2);
+    
+    let time_series = [];
+    for(index in grouped){
+        let time_step = grouped[index];
+        let date = time_step[0][0]; // just use the date of the first element
+        let sum = time_step.reduce((sum, x) => sum+x[1], 0); // Sum over the 2nd element in each tuple, this is the frequency we're looking at
+        time_series.push([date, sum]);
+    }
+
+    filtered_time_series = time_series.reduce((filtered, x) => {
+        if((start_date <= x[0]) && (x[0] <= end_date)){
+            filtered.push(x);
+        }
+        return filtered;
+    }, []);
+
+    return filtered_time_series;
+    
+}
+
+
+function graph_pre_process(data, graph_state){
+    // preprocess the graph data into a format thats more compatible with d3
+
+    // Flat data is used for the axis scale domains
+    let flat_data = data.reduce(function(acc, time_series) {
+        entities = time_series.data.reduce(function(entities, x){ 
+            entities.push({'time': x[0], 'values': x[1], 'name': time_series.name});
+            return entities;
+        }, []);
+        return acc.concat(entities);
+    }, []);
+
+    // further flatten each element
+    flat_data = {
+        'time': flat_data.map(x => x.time),
+        'values': flat_data.map(x => x.values),
+        'name': flat_data.map(x => x.name),
+
+    };
+
+    // transform each time series into key value pairs, this works better with d3
+    let listed = data.reduce(function(acc, time_series) {
+        values =time_series.data.reduce( (entities, x) => {
+            entities.push({'time': x[0], 'freq': x[1]}); 
+            return entities;
+        }, []);
+
+        acc.push({'key': time_series.name, 'values': values});
+        return acc;
+    }, []);
+
+    graph_state.flat_data = flat_data;
+    graph_state.listed = listed;
+    return graph_state;
+}
+
+function draw_graph(graph_state){
+    // set the dimensions and margins of the graph
+    let margin = {top: 10, right: 30, bottom: 30, left: 120},
+        graph_width = width - margin.left - margin.right,
+        graph_height = 400 - margin.top - margin.bottom;
+
+    // append the svg object to the body of the page
+    graph_state.svg = d3.select("#line_graph")
+    .append("svg")
+        .attr("width", graph_width + margin.left + margin.right)
+        .attr("height", graph_height + margin.top + margin.bottom)
+    .append("g")
+        .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
+    // Define the scale used for the X axis using the flattened data (this contains the max and min in one list)
+    graph_state.x_scale = d3.scaleLinear()
+        .domain(d3.extent(graph_state.flat_data.time))
+        .range([ 0, graph_width ]);
+    
+    // Define the scale used for the Y axis using the flattened data (this contains the max and min in one list)
+    graph_state.y_scale = d3.scaleLinear()
+        .domain(d3.extent(graph_state.flat_data.values))
+        .range([ graph_height, 0 ]);
+    
+    // Define the two d3 scales, with appropriate formatting
+    graph_state.x_axis = d3.axisBottom(graph_state.x_scale).ticks(5).tickFormat(d3.timeFormat('%B %Y'));
+    graph_state.y_axis = d3.axisLeft(graph_state.y_scale);
+
+    graph_state.svg.append("g")
+        .attr("transform", "translate(0," + graph_height + ")")
+        .attr("class","x_axis");
+                
+            
+    graph_state.svg.append("g")
+        .attr("class","y_axis");
+    
+    return graph_state;
+}
+
+function update_graph(graph_state){
+    // update the domains for the new data
+    graph_state.x_scale.domain(d3.extent(graph_state.flat_data.time));
+    graph_state.y_scale.domain(d3.extent(graph_state.flat_data.values));
+
+    graph_state.svg.selectAll(".x_axis") // change the x axis, with an animation
+        .transition()
+        .duration(500)
+        .call(graph_state.x_axis);
+    
+    graph_state.svg.selectAll(".y_axis") // change the y axis, with an animation
+        .transition()
+        .duration(500)
+        .call(graph_state.y_axis);
+
+
+        
+    // select all existing lines, and join them with our data
+    const line = graph_state.svg.selectAll(".line").data(graph_state.listed, x => x.values);
+
+    line
+        .join("path")
+        .attr("class","line")
+        .transition()
+        .duration(500)
+        .attr("d", d => d3.line()
+            .x(time_step => graph_state.x_scale(time_step.time))
+            .y(time_step => graph_state.y_scale(time_step.freq))
+            (d.values))
+        .attr("fill", "none")
+        .attr("stroke", x => x.key) // the color of the line matches what we chose earlier
+        .attr("stroke-width", 3)
+        
+    
+
+    return graph_state;
+}
+
+
+
+
+let graph_state = {};
+let drawn_graph = false;
+
+async function update(){
+    // callback to update the graph
+    let graph_data = [];
+    for(key in circle_positions){
+        // fetch all the data in the radius of the circle
+        location_indices = locations_in_projection_radius(circle_positions[key].x, circle_positions[key].y, circle_positions[key].r);
+        // map this set of time series over multiple locations to a single time series
+        time_series = time_series_for_indices(location_indices, new Date(2020, 0, 1), new Date(2023, 0, 1));
+        graph_data.push({'data': time_series, 'name': key});
+    }
+    // pre-process the data for d3
+    graph_state = graph_pre_process(graph_data, graph_state);
+    if(drawn_graph == false){
+        graph_state = draw_graph(graph_state); // if we havent yet, draw add the graph
+        drawn_graph = true;
+    }
+    // update the graph with the new data
+    graph_state = update_graph(graph_state);
+}
+
+
+
+
+
+draw_heatmap();
+
+function draw_initial_selection(){
+    // Add the default selection
+    const NYC_coords = projection([-74, 40.71]);
+    const LDN_coords = projection([0, 51]);
+    add_circle(stage,NYC_coords[0], NYC_coords[1], update);
+    add_circle(stage,LDN_coords[0], LDN_coords[1], update);
+}
+
+setTimeout(draw_initial_selection, 500);
+
+</script>
+
