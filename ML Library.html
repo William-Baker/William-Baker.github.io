@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="">
 <meta name="author" content="">
-<title>Speech Recognition</title>
+<title>ML Library</title>
 <!-- Bootstrap Core CSS -->
 <link href="css/bootstrap.min.css" rel="stylesheet">
 <!-- Custom CSS -->
@@ -16,7 +16,7 @@
 <link href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,700,400italic,700italic" rel="stylesheet" type="text/css">
 <link href="http://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
 
-<script src="https://cdn.plot.ly/plotly-2.18.0.min.js"></script>
+
 
 <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
 <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -64,9 +64,9 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-md-8 col-md-offset-2">
-				<h1 class="brand-heading">Speech Recognition</h1>
+				<h1 class="brand-heading">Machine Learning Library</h1>
 				<p class="intro-text">
-					from Cambridge University studies
+					A personal school project
 				</p>
 				<a href="#single-project" class="btn btn-circle page-scroll">
 				<i class="fa fa-angle-double-down animated"></i>
@@ -81,19 +81,19 @@
 <div class="container content-section text-center">
 	<div class="row">
 		<div class="col-lg-8 col-lg-offset-2">
-
-			<div style="display:flex;" id="a4bcc7ec-761f-4246-8759-cf045a610512"></div>
-			<script src="code/speech_code.js"></script>
+			
+			<img src="img/ML Lib tests.png" alt="">
 			<p>
 				<br/>
-				This speech processing project focused on identifying phones (distinct sounds) in short audio recordings using a bidirectional LSTM.
+				A personal project from high school aimed to understand CUDA kernels and Neural Networks.
 				<br/>
-				A search within the hyper-parameter space of the model was conducted, exploring numerous architectural tweaks and training environments. 
-				The figure above visualises the confusion matrix of a model trained for phonetic identification, it visualises the frequency of miss-classifications. Accordingly the main diagonal represents the frequency of correct classifications. The additional <B>INS</B> and <B>DEL</B> columns represent the frequency of insertions and deletions required to convert the predicted sequence of phones into the target, according to the <i>Levenshtein Distance</i>.
+				This is implemented in C++ and features a Matrix library supporting both CPU and GPU operations. This library was then used as a backend for training multi layer perceptron networks. As well as Convolutional Neural Networks (At a later date)
+				<br/>
+				This library was then used in my first dissertation on the "Detection of Parkinson's within mouse data"
 			</p>
 			<p>
 				<p>
-					<a href="Speech Recognition.pdf" class="btnghost"><i class="fa fa-download"></i>Download the Report</a>
+					<a href="https://github.com/William-Baker/MLib" class="btnghost"><i class="fa fa-github"></i>Code</a>
 				</p>
 			</p>
 		</div>
