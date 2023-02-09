@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="">
 <meta name="author" content="">
-<title>Speech Processing</title>
+<title>Speech Recognition</title>
 <!-- Bootstrap Core CSS -->
 <link href="css/bootstrap.min.css" rel="stylesheet">
 <!-- Custom CSS -->
@@ -64,7 +64,7 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-md-8 col-md-offset-2">
-				<h1 class="brand-heading">Speech Processing</h1>
+				<h1 class="brand-heading">Speech Recognition</h1>
 				<p class="intro-text">
 					from Cambridge University studies
 				</p>
@@ -87,11 +87,14 @@
 			<script src="code/speech_code.js"></script>
 			<p>
 				<br/>
-				This speech processing project 
+				This speech processing project focused on identifying phones (distinct sounds) in short audio recordings using a bidirectional LSTM.
+				<br/>
+				A search within the hyper-parameter space of the model was conducted, exploring numerous architectural tweaks and training environments. 
+				The figure above visualises the confusion matrix of a model trained for phonetic identification, it visualises the frequency of miss-classifications. Accordingly the main diagonal represents the frequency of correct classifications. The additional <B>INS</B> and <B>DEL</B> columns represent the frequency of insertions and deletions required to convert the predicted sequence of phones into the target, according to the <i>Levenshtein Distance</i>.
 			</p>
 			<p>
 				<p>
-					<a href="Sentiment_Detection_of_Reviews.pdf" class="btnghost"><i class="fa fa-download"></i>Download the Report</a>
+					<a href="Speech Recognition.pdf" class="btnghost"><i class="fa fa-download"></i>Download the Report</a>
 				</p>
 			</p>
 		</div>
