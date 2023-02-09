@@ -124,6 +124,7 @@ a:hover,a:focus {
 	-moz-background-size:cover;
 	background-size:cover;
 	-o-background-size:cover;
+	background-position: center;
 }
 .intro .intro-body {
 	display:table-cell;
