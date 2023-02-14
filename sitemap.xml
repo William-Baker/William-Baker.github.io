@@ -1,11 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<link type="text/css" rel="stylesheet" id="dark-mode-custom-link"/>
-<link type="text/css" rel="stylesheet" id="dark-mode-general-link"/>
-<style lang="en" type="text/css" id="dark-mode-custom-style"/>
-<style lang="en" type="text/css" id="dark-mode-native-style"/>
-<style lang="en" type="text/css" id="dark-mode-native-sheet"/>
-<url>
-<loc>https://william-baker.github.io/</loc>
-<changefreq>weekly</changefreq>
-<priority>1.00</priority>
-</url>
+   <url>
+      <loc>https://william-baker.github.io/</loc>
+   </url>
+
+</urlset>
