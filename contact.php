@@ -57,7 +57,8 @@ if (!$errors) {
 //Simple mail function with HTML header
 function sendmail($to, $subject, $message, $from) {
 	$headers = "MIME-Version: 1.0" . "\r\n";
-	$headers .= "Content-type:text/html;charset=iso-8859-1" . "\r\n";
+	//$headers .= "Content-type:text/html;charset=iso-8859-1" . "\r\n";
+	$headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
 	$headers .= 'From: ' . $from . "\r\n";
 	
 	$result = mail($to,$subject,$message,$headers);
