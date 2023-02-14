@@ -477,7 +477,7 @@ img {
 }
 
 
-.col-md-3:hover .innerText {
+.col-md-4:hover .innerText {
 	position: absolute;
 	width: 100%;
 	top: 40%;
@@ -493,15 +493,6 @@ img {
 }
 
 
-/* .col-md-3:hover .innerText {
-	position: absolute;
-	width: 100%;
-	display: flex;
-	flex-direction: column;
-	flex-wrap: wrap;
-	justify-content: center;
-	align-items: center;
-} */
 
 .innerText {
 	position: absolute;
@@ -518,7 +509,7 @@ img {
     transition: all 1s ease;
 }
 
-.col-md-3:hover  .dark-overlay{
+.col-md-4:hover  .dark-overlay{
 	position:absolute;
 	width:100%;
 	top:0;
