@@ -541,7 +541,7 @@ img {
     transition: all 1s ease;
 }
 
-.tile-border{
+/* .tile-border{
 	position:absolute;
 	top:0;
 	bottom:0;
@@ -549,7 +549,9 @@ img {
 	height: 100%;
 	border:3px solid rgba(0, 0, 0, 0.4);
 
-}
+} */
+
+
 
 .mobile-only{
 	display: none;
