@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>Computer Vision</title>
+<!-- Bootstrap Core CSS -->
+<link href="css/bootstrap.min.css" rel="stylesheet">
+<!-- Custom CSS -->
+<link href="css/theme.css" rel="stylesheet">
+<!-- Custom Fonts -->
+<link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700,400italic,700italic" rel="stylesheet" type="text/css">
+<link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+
+
+
+<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body id="page-top" data-spy="scroll" data-target=".navbar-fixed-top">
+<!-- Navigation -->
+<nav class="navbar navbar-custom navbar-fixed-top" role="navigation">
+<div class="container">
+	<div class="navbar-header">
+		<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-main-collapse">
+		<i class="fa fa-bars"></i>
+		</button>
+		<a class="navbar-brand page-scroll" href="index.html">
+		William Baker
+		</a>
+	</div>
+	<!-- Collect the nav links, forms, and other content for toggling -->
+	<div class="collapse navbar-collapse navbar-right navbar-main-collapse">
+		<ul class="nav navbar-nav">
+			<li>
+			<a href="index.html">Home</a>
+			</li>
+			<li>
+			<a href="Cambridge.html">Cambridge</a>
+			</li>
+			<li>
+			<a href="Kings.html">Kings</a>
+			</li>
+			<li>
+			<a href="Undergraduate Dissertation.html">Dissertation</a>
+			</li>
+			<li>
+			<a href="William Baker CV.pdf">CV</a>
+			</li>
+	</div>
+	<!-- /.navbar-collapse -->
+</div>
+<!-- /.container -->
+</nav>
+<!-- Intro Header -->
+<header class="alt-intro">
+<div class="intro-body">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-8 col-md-offset-2">
+				<h1 class="brand-heading">Computer Vision</h1>
+				<p class="intro-text">
+					from Cambridge University studies
+				</p>
+				
+			</div>
+		</div>
+	</div>
+</div>
+</header>
+<!-- Project Details Section -->
+<section id="single-project">
+<div class="container content-section text-center">
+	<div class="row">
+		<div class="col-lg-8 col-lg-offset-2">
+			
+			<img src="img/computer vision.png" alt="">
+			<p>
+				<br/>
+				This paper was written for my investigation into contrastive learning from images as part of my Computer Vision module at Cambridge. I implement the current state of the art architecture for the task and improve upon the current best implementation using DEIT by 2.65% by using a loss function I developed and implemented personally.
+				<br/>
+			</p>
+			<h2> Abstract </h2>
+			In this paper a novel contrastive loss function is presented, which can learn from contrasting image labels, the similarity and differences between images with 78.07% accuracy. The DEIT-B architecture is used and classification performance within 2% of the current state of the art on the TinyImageNet dataset has been verified. Our loss function is a supervised batched pairwise contrastive loss (SBPC), as computing the loss over the entire batch is far more computationally efficient. Results have been ratified during training and through a T-SNE visualisation of the produced embeddings. We conclude that supervised contrastive learning is an effective technique to learn from contrasting image labels, and demonstrate excellent generalisation performance to unseen datasets. However, note that models trained using this technique performed worse than
+those trained directly for classification...
+			<p>
+				<a href="Computer_Vision_Proj.pdf.pdf" class="btnghost"><i class="fa fa-download"></i>Download the Report</a>
+			</p>
+		</div>
+	</div>
+</div>
+</section>
+<!-- Footer -->
+<footer>
+<div class="container text-center">
+	<p class="credits">
+		Copyright &copy; 2022<br/>
+		"Aries" Template by WowThemes.net
+	</p>
+</div>
+</footer>
+<!-- jQuery -->
+<script src="js/jquery.js"></script>
+<!-- Bootstrap Core JavaScript -->
+<script src="js/bootstrap.min.js"></script>
+<!-- Plugin JavaScript -->
+<script src="js/jquery.easing.min.js"></script>
+<!-- Custom Theme JavaScript -->
+<script src="js/theme.js"></script>
+</body>
+</html>
