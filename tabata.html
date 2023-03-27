@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+        <meta charset="utf-8"/>
+        <title>Tabata Timer</title>
+        <!--[if lt IE 9]>
+        <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+        <style>
+            body {
+                font-family: sans-serif;;
+                color: #e0e0e0;
+                font-size: 2em;
+            }
+            time {
+                font-size: 3em;
+            }
+            label {
+                width: 6em;
+                display: inline-block;
+            }
+            .on { color: green; }
+            .off { color: rgb(192, 0, 0); }
+	    div { margin: 0.3em 0; }
+	    input { font-size: .8em; }
+        input, select {
+        padding: 5px;
+        margin-bottom: 30px;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid #eee;
+        }
+        input::placeholder {
+        color: #eee;
+        }
+        .checkbox input {
+        margin: 0 10px 0 0;
+        vertical-align: middle;
+        }
+        .checkbox a {
+        color: #26a9e0;
+        }
+        .checkbox a:hover {
+        color: #85d6de;
+        }
+        .btn-item, button {
+        padding: 10px 5px;
+        margin-top: 20px;
+        border-radius: 5px; 
+        border: none;
+        background: #26a9e0; 
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 400;
+        color: #fff;
+        }
+        .btn-item {
+        display: inline-block;
+        margin: 20px 5px 0;
+        }
+        button {
+        width: 100%;
+        }
+        button:hover, .btn-item:hover {
+        background: #85d6de;
+        }
+        </style>
+    </head>
+    <body style="background-color: #414141">
+        <time>00:00</time>
+        <form>
+            <div>
+                <label>Rounds</label>
+                <input type="number" name="rounds" min="0" placeholder="Number of rounds">
+            </div>
+            <div>
+                <label class="on">On (sec)</label>
+                <input type="number" name="on" min="0" step="5" placeholder="Excercise time">
+            </div>
+            <div>
+                <label class="off">Off (sec)</label>
+                <input type="number" name="off" min="0" step="5" placeholder="Break time">
+            </div>
+            <button>Go</button>
+        <form>
+
+        <audio id="start">
+          <source src="sounds/beep.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+
+        <audio id="end">
+          <source src="sounds/end.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+
+
+        <script src="lib/app.js"></script>
+    </body>
+</html>
